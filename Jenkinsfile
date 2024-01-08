@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools{
         jdk 'jdk17'
-        maven 'maven3'
+        maven 'maven'
     }
     environment{
         SCANNER_HOME= tool 'sonar-scanner'
@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('git-checkout') {
             steps {
-                git 'https://github.com/jaiswaladi246/secretsanta-generator.git'
+                git 'https://github.com//secretsanta-generator.git'
             }
         }
 
@@ -29,15 +29,15 @@ pipeline {
         
 		stage('OWASP Dependency Check') {
             steps {
-               dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DC'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+               dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
 
 
         stage('Sonar Analysis') {
             steps {
-               withSonarQubeEnv('sonar'){
+               withSonarQubeEnv('sonar-server'){
                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Santa \
                    -Dsonar.java.binaries=. \
                    -Dsonar.projectKey=Santa '''
@@ -55,7 +55,7 @@ pipeline {
          stage('Docker Build') {
             steps {
                script{
-                   withDockerRegistry(credentialsId: 'docker-cred') {
+                   withDockerRegistry(credentialsId: 'docker') {
                     sh "docker build -t  santa123 . "
                  }
                }
@@ -65,9 +65,9 @@ pipeline {
         stage('Docker Push') {
             steps {
                script{
-                   withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker tag santa123 adijaiswal/santa123:latest"
-                    sh "docker push adijaiswal/santa123:latest"
+                   withDockerRegistry(credentialsId: 'docker') {
+                    sh "docker tag santa123 rameshkumarverma/santa123:latest"
+                    sh "docker push rameshkumarverma/santa123:latest"
                  }
                }
             }
@@ -76,30 +76,30 @@ pipeline {
         	 
         stage('Docker Image Scan') {
             steps {
-               sh "trivy image adijaiswal/santa123:latest "
-            }
-        }}
-        
-         post {
-            always {
-                emailext (
-                    subject: "Pipeline Status: ${BUILD_NUMBER}",
-                    body: '''<html>
-                                <body>
-                                    <p>Build Status: ${BUILD_STATUS}</p>
-                                    <p>Build Number: ${BUILD_NUMBER}</p>
-                                    <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
-                                </body>
-                            </html>''',
-                    to: 'jaiswaladi246@gmail.com',
-                    from: 'jenkins@example.com',
-                    replyTo: 'jenkins@example.com',
-                    mimeType: 'text/html'
-                )
+               sh "trivy image rameshkumarverma/santa123:latest "
             }
         }
+        
+        //  post {
+        //     always {
+        //         emailext (
+        //             subject: "Pipeline Status: ${BUILD_NUMBER}",
+        //             body: '''<html>
+        //                         <body>
+        //                             <p>Build Status: ${BUILD_STATUS}</p>
+        //                             <p>Build Number: ${BUILD_NUMBER}</p>
+        //                             <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
+        //                         </body>
+        //                     </html>''',
+        //             to: 'jaiswaladi246@gmail.com',
+        //             from: 'jenkins@example.com',
+        //             replyTo: 'jenkins@example.com',
+        //             mimeType: 'text/html'
+        //         )
+        //     }
+        // }
 		
 		
-
+    }
     
 }
