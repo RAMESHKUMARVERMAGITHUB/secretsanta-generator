@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('git-checkout') {
             steps {
-                git 'https://github.com//secretsanta-generator.git'
+                git 'https://github.com/rameshkumarvermagithub/secretsanta-generator.git'
             }
         }
 
@@ -79,7 +79,11 @@ pipeline {
                sh "trivy image rameshkumarverma/santa123:latest "
             }
         }
-        
+        stage('Docker Deploy') {
+            steps {
+               sh "docker run -d -p 8080:8080 rameshkumarverma/santa123:latest "
+            }
+        }
         //  post {
         //     always {
         //         emailext (
